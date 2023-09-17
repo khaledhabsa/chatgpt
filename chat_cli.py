@@ -6,7 +6,7 @@ import glob
 
 
 
-VECTORDB_PATH = "./data/vector_store"
+VECTORDB_PATH = "/opt/projects/openai/data/vector_store"
 app = typer.Typer()
 docChatbot = DocChatbot()
 

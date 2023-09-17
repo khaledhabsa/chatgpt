@@ -20,8 +20,8 @@ webui_title = """
 
 init_message = """Hello!"""
 
-VS_ROOT_PATH = "./data/vector_store"
-UPLOAD_ROOT_PATH = "./data/source_documents/"
+VS_ROOT_PATH = "/opt/projects/openai/data/vector_store"
+UPLOAD_ROOT_PATH = "/opt/projects/openai/data/source_documents/"
 
 def get_vs_list():
     if not os.path.exists(VS_ROOT_PATH):
