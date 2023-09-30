@@ -6,7 +6,8 @@ from typing_extensions import Annotated
 import glob
 
 
-VECTORDB_PATH = "./data/vector_store"
+#VECTORDB_PATH = "./data/vector_store"
+VECTORDB_PATH = "/opt/projects/openai/data/vector_store"
 app = Flask(__name__)
 docChatbot = DocChatbot()
 
@@ -53,6 +54,5 @@ def chat():
 
 
 if __name__ == "__main__":
-	app.run(debug=True,use_reloader=False)
+	app.run(debug=True,use_reloader=False, port=8060)
 
-  

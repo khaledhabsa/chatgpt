@@ -1,5 +1,6 @@
 import os
 import openai
+import logging
 from dotenv import load_dotenv
 from langchain.chat_models import AzureChatOpenAI
 from langchain.chat_models import ChatOpenAI
@@ -19,7 +20,15 @@ from langchain.text_splitter import (RecursiveCharacterTextSplitter, CharacterTe
 from typing import List
 import streamlit
 
-REQUEST_TIMEOUT = 10
+
+REQUEST_TIMEOUT = 50
+
+
+
+logging.basicConfig(level=logging.INFO)
+
+
+
 
 class StreamHandler(BaseCallbackHandler):
     def __init__(self, container, initial_text=""):
@@ -29,6 +38,39 @@ class StreamHandler(BaseCallbackHandler):
     def on_llm_new_token(self, token: str, **kwargs) -> None:
         self.text += token
         self.container.markdown(self.text)
+
+
+class DocChatbot:
+    # Function to expand the user's query based on the provided context and index_topic
+        def expand_user_query(self, user_question, index_topic):
+            expanded_prompt = f"""We have a knowledge base in a Vector Index database of some topic, 
+            and we get some brief questions from our users about the content of this index. 
+            We need to expand the questions of the users in a way that helps us sense their actual intent 
+            of the question and make a better search in the Vector database to fulfill their need. 
+            I am providing you with these contextual information: Knowledge base topic: {index_topic}, 
+            Users Original brief question: {user_question}. 
+            I want you to: 
+            - Firstly analyze the user's original brief question and provide a brief summary of it, getting the Key Concepts from it,
+            - then explain the meaning or context of each key concept from the user's query
+            - then based on the previous step's result try to Explore potential connections between the concepts from the Knowledge base topic and the explained key concepts from the user's query."""
+            response = self.llm.create_completion(
+                prompt=f'{user_question} & {index_topic} + {expanded_prompt}',
+                max_tokens=100
+            )
+            expanded_query = response['choices'][0]['text'].strip()
+            return expanded_query
+
+    
+        # Function to generate the final answer based on the user's query and the enhanced similarity context
+        def generate_final_answer(self, user_question, enhanced_similarity):
+            full_prompt = f'{user_question} & Contextual information: {enhanced_similarity}'
+            remaining_length = 2000 - len(full_prompt)
+            response = self.llm.create_completion(
+                prompt=full_prompt,
+                max_tokens=remaining_length
+            )
+            final_answer = response['choices'][0]['text'].strip()
+            return final_answer
 
 
 class DocChatbot:
@@ -125,6 +167,9 @@ class DocChatbot:
                 callbacks=[StreamHandler(condense_question_container, "🤔...")]
             ) # type: ignore
         
+
+
+
     def init_chatchain(self, chain_type : str = "stuff") -> None:
         # init for ConversationalRetrievalChain
         CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template("""Given the following conversation and a follow up input, rephrase the standalone question. 
@@ -137,6 +182,7 @@ class DocChatbot:
 
         Follow Up Input:
             {question}
+
 
         Standalone Question: """
             )   
